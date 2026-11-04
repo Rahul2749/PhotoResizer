@@ -4,6 +4,8 @@ A free browser photo and signature editor built with Next.js, React, TypeScript 
 
 Production target: **https://photoresizekaro.in**, repository **https://github.com/Rahul2749/PhotoResizer**, support **support@photoresizekaro.in**. Follow [the Ubuntu deployment guide](docs/deployment-ubuntu.md) for the existing host Nginx + Certbot server. PhotoResizeKaro has its own Compose project and loopback port **8088**, separate from Task Manager on port 8080. See [release verification](docs/production-validation.md) for checks and remaining server-side steps. Publishing the source does not deploy it to the VPS; server deployment is a separate step.
 
+The homepage now starts with the photo/signature workflow. Optional exam presets expand on demand; colour choices and bilingual help follow the editor. Search metadata, static help content, app structured data and a social preview are included. Follow [the search launch checklist](docs/seo-launch.md) for Search Console ownership, sitemap submission and monitoring. Search rankings are not guaranteed.
+
 ## Run locally
 
 Use Node.js 22.18 or newer; the Docker builder and CI use Node.js 24.

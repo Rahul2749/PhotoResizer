@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f6f8fc"/>
+  <rect x="36" y="36" width="1128" height="558" rx="30" fill="#fff" stroke="#dde4ef" stroke-width="2"/>
+  <rect x="90" y="87" width="54" height="54" rx="15" fill="#2859b8"/>
+  <g fill="none" stroke="#fff" stroke-width="2.5"><rect x="103" y="100" width="28" height="28" rx="5"/><path d="m104 122 8-9 7 7 5-5 7 9"/><circle cx="122" cy="108" r="2"/></g>
+  <g font-family="Arial, sans-serif"><text x="161" y="124" font-size="29" font-weight="700" fill="#1c2d4a">PhotoResizeKaro.</text>
+  <text x="90" y="242" font-size="58" font-weight="700" fill="#1c2d4a">Photo &amp; signature</text>
+  <text x="90" y="314" font-size="58" font-weight="700" fill="#2859b8">resizer. Free online.</text>
+  <text x="93" y="369" font-size="23" fill="#65748c">Crop, resize and compress. Your files stay on your device.</text>
+  <g fill="#e6edfc"><rect x="90" y="412" width="118" height="48" rx="12"/><rect x="221" y="412" width="118" height="48" rx="12"/><rect x="352" y="412" width="135" height="48" rx="12"/></g>
+  <g font-size="20" font-weight="700" fill="#2859b8"><text x="117" y="443">20 KB</text><text x="248" y="443">50 KB</text><text x="377" y="443">100 KB</text></g>
+  <text x="92" y="540" font-size="21" fill="#65748c">No login. No watermark. JPG · PNG · WebP.</text>
+  <text x="872" y="540" font-size="18" fill="#2859b8">photoresizekaro.in</text></g>
+</svg>

@@ -13,6 +13,7 @@ async function addTexture(page: Page, kind: "photo" | "signature") {
 }
 
 async function apply(page: Page, value: string) {
+  if (!(await page.locator(".preset-disclosure").evaluate((element) => (element as HTMLDetailsElement).open))) await page.locator(".preset-disclosure > summary").click();
   await page.getByLabel("Exam or application", { exact: true }).selectOption(value);
   await page.getByRole("button", { name: "Apply preset", exact: true }).click();
 }
@@ -22,6 +23,7 @@ test("choosing a preset is explicit; applying keeps files, updates both limits a
   const photo = page.locator("#photo-editor");
   await photo.getByRole("button", { name: "Resize & compress" }).click();
   await expect(photo.getByRole("link", { name: "Download photo" })).toBeVisible();
+  await page.locator(".preset-disclosure > summary").click();
   await page.getByLabel("Exam or application", { exact: true }).selectOption("cuet-ug-2026");
   await expect(photo.getByLabel("Custom", { exact: true })).toHaveValue("50");
   await expect(photo.getByRole("link", { name: "Download photo" })).toBeVisible();
@@ -88,6 +90,7 @@ test("SBI preferred sizes and IBPS general scope are distinguished; custom mode 
 test("preset details work in Hindi on a phone viewport", async ({ page }, testInfo) => {
   await page.setViewportSize({width:390,height:844}); await page.goto("/");
   await page.getByRole("button",{name:"Switch to Hindi"}).click();
+  await page.locator(".preset-disclosure > summary").click();
   await page.getByLabel("परीक्षा या आवेदन",{exact:true}).selectOption("ctet-sept-2026");
   await page.getByRole("button",{name:"प्रीसेट लागू करें",exact:true}).click();
   await expect(page.locator(".preset-details")).toContainText("300 DPI");

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./editor-first.css";
 import { site } from "../lib/site";
+import { socialImage } from "../lib/seo";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.origin),
@@ -9,8 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   applicationName: site.name,
   icons: { icon: "/icon.svg" },
-  openGraph: { type: "website", locale: "en_IN", siteName: site.name, title: "PhotoResizeKaro — Free, private photo resizer", description: "Prepare photos and signatures in your browser. No photo uploads, login or watermarks." },
-  twitter: { card: "summary", title: "PhotoResizeKaro", description: "Free photo and signature tools. Your images stay on your device." },
+  openGraph: { type: "website", locale: "en_IN", siteName: site.name, url: site.origin, title: "PhotoResizeKaro — Free, private photo resizer", description: "Prepare photos and signatures in your browser. No photo uploads, login or watermarks.", images: [socialImage] },
+  twitter: { card: "summary_large_image", title: "PhotoResizeKaro", description: "Free photo and signature tools. Your images stay on your device.", images: [socialImage.url] },
   robots: { index: true, follow: true },
 };
 

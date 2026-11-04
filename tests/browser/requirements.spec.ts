@@ -55,7 +55,7 @@ test("Trust page opens separately, works on mobile, and explains the actual data
   await expect(link).toHaveAttribute("target", "_blank");
   const popupEvent = page.waitForEvent("popup"); await link.click(); const trust = await popupEvent;
   await expect(trust.getByRole("heading", { name: "Your photos belong on your device." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "One form. Two files. All set." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose a file to get started" })).toBeVisible();
   await trust.setViewportSize({ width: 390, height: 844 });
   await trust.getByRole("button", { name: "Switch to Hindi" }).click();
   await expect(trust.getByRole("heading", { name: "आपकी फ़ोटो आपके डिवाइस पर रहे।" })).toBeVisible();

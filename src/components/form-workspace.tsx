@@ -47,8 +47,7 @@ export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
   }
 
   return <section id="editor" className="form-workflow" aria-labelledby="workflow-title">
-    <div className="workflow-intro"><div><p className="eyebrow">{lang === "en" ? "PHOTO + SIGNATURE" : "फ़ोटो + हस्ताक्षर"}</p><h2 id="workflow-title">{t.title}</h2><p>{t.intro}</p></div><button className="clear-session" onClick={() => clearDialog.current?.showModal()}><Icon name="close" size={15}/>{t.startOver}</button></div>
-    <PresetPicker lang={lang} applied={preset} onApply={(next) => { setPreset(next); setPresetVersion((value) => value + 1); if (next?.photo === null) setActive("signature"); }}/>
+    <div className="workflow-intro"><h2 id="workflow-title">{lang === "en" ? "Choose a file to get started" : "शुरू करने के लिए फ़ाइल चुनें"}</h2><button className="clear-session" onClick={() => clearDialog.current?.showModal()}><Icon name="close" size={15}/>{t.startOver}</button></div>
     <div className="workflow-tabs" role="tablist" aria-label={lang === "en" ? "Application files" : "आवेदन की फ़ाइलें"}>
       {steps.map((step, index) => <button type="button" role="tab" id={`workflow-tab-${step}`} aria-controls={`workflow-panel-${step}`} aria-selected={active === step} tabIndex={active === step ? 0 : -1} key={step} onClick={() => navigate(step)} onKeyDown={(event) => {
         let target = index;
@@ -60,14 +59,15 @@ export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
         event.preventDefault(); navigate(steps[target], true);
       }}><span className={`workflow-number ${step !== "review" && (step !== "photo" || includePhoto) && (step === "photo" ? photo : signature).status === "ready" ? "is-ready" : ""}`}>{step !== "review" && (step !== "photo" || includePhoto) && (step === "photo" ? photo : signature).status === "ready" ? <Icon name="check" size={15}/> : `0${index + 1}`}</span><span><strong>{t[step]}</strong><small>{statuses[step]}</small></span></button>)}
     </div>
-    <p className="workflow-limits">{preset ? (lang === "en" ? "Applied file rules are shown above. Check the source and current portal for all other requirements. You can adjust the settings below." : "लागू फ़ाइल नियम ऊपर हैं। बाकी नियम स्रोत और मौजूदा पोर्टल पर जाँचें। नीचे की सेटिंग बदल सकते हैं।") : t.limits}</p>
+    <details className="preset-disclosure"><summary>{preset ? `${lang === "en" ? "Exam preset" : "परीक्षा प्रीसेट"}: ${preset.name}` : (lang === "en" ? "Exam presets (optional)" : "परीक्षा प्रीसेट (वैकल्पिक)")}</summary><PresetPicker lang={lang} applied={preset} onApply={(next) => { setPreset(next); setPresetVersion((value) => value + 1); if (next?.photo === null) setActive("signature"); }}/></details>
+    <p className="workflow-limits">{preset ? (lang === "en" ? "Review the applied rules in Exam presets. Follow the current official instructions; settings below are editable." : "परीक्षा प्रीसेट में लागू नियम देखें। मौजूदा आधिकारिक निर्देश मानें; नीचे की सेटिंग बदल सकती है।") : (lang === "en" ? "Example limits: photo 50 KB · signature 20 KB. Change these to match your form." : "उदाहरण सीमाएँ: फ़ोटो 50 KB · हस्ताक्षर 20 KB। इन्हें अपने फ़ॉर्म के अनुसार बदलें।")}</p>
     <div role="tabpanel" id="workflow-panel-photo" aria-labelledby="workflow-tab-photo" hidden={active !== "photo"}>
       <div hidden={!includePhoto}><ImageEditor key={`photo-${session}`} kind="photo" lang={lang} onSummary={onPhoto} presetRule={preset?.photo} presetVersion={presetVersion}/></div>{!includePhoto && <div className="live-capture-panel"><Icon name="image" size={36}/><h2>{lang === "en" ? "Take your photo on the official portal" : "आधिकारिक पोर्टल पर फ़ोटो लें"}</h2><p>{preset?.note[lang]}</p><a href={preset?.source} target="_blank" rel="noopener noreferrer">{lang === "en" ? "Read the official instructions" : "आधिकारिक निर्देश पढ़ें"} ↗</a></div>}
       <div className="workflow-next"><p>{t.single}</p><button className="choose-button" onClick={() => navigate("signature", true)}>{t.nextSignature}<Icon name="arrow" size={17}/></button></div>
     </div>
     <div role="tabpanel" id="workflow-panel-signature" aria-labelledby="workflow-tab-signature" hidden={active !== "signature"}>
-      <p className="signature-tip"><Icon name="image" size={16}/>{t.signatureTip}</p>
       <ImageEditor key={`signature-${session}`} kind="signature" lang={lang} onSummary={onSignature} presetRule={preset?.signature} presetVersion={presetVersion}/>
+      <p className="signature-tip"><Icon name="image" size={16}/>{t.signatureTip}</p>
       <div className="workflow-next"><button className="back-to-photo" onClick={() => navigate("photo", true)}>{t.editPhoto}</button><button className="choose-button" onClick={() => navigate("review", true)}>{t.nextReview}<Icon name="arrow" size={17}/></button></div>
     </div>
     <section role="tabpanel" id="workflow-panel-review" aria-labelledby="workflow-tab-review" hidden={active !== "review"} className="pair-review">

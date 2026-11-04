@@ -26,7 +26,7 @@ test("validates a real export, invalidates edits, rotates, processes offline and
   page.on("request", (request) => requests.push({ url: request.url(), method: request.method() }));
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Ready for the form.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Photo & signature resizer");
   await page.screenshot({ path: testInfo.outputPath("desktop-empty.png"), fullPage: true });
   await fixture(page);
   await page.getByRole("button", { name: "20 KB", exact: true }).click();
