@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+.git
+.github
+.generated
+.env
+.env.*
+.codex
+.agents
+.aws
+docs
+test-results
+playwright-report
+release
+*.tsbuildinfo
+*.log

@@ -1,0 +1,41 @@
+name: Production checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm audit --omit=dev
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: docker build -t photoresizekaro:ci .
+      - name: Start the read-only, unprivileged image
+        run: docker run -d --name photoresizekaro-ci --read-only --tmpfs /tmp:rw,noexec,nosuid,size=32m,mode=1777 --cap-drop ALL --security-opt no-new-privileges:true --memory 128m --pids-limit 64 -p 127.0.0.1:18088:8080 photoresizekaro:ci
+      - run: node scripts/smoke-test.mjs http://127.0.0.1:18088
+      - run: npm run test:browser
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:18088
+      - name: Container logs
+        if: always()
+        run: docker logs photoresizekaro-ci || true
+      - name: Stop the test container
+        if: always()
+        run: docker rm -f photoresizekaro-ci || true

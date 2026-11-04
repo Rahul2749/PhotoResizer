@@ -1,0 +1,19 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import { site } from "../lib/site";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(site.origin),
+  title: "PhotoResizeKaro — Free, private photo resizer",
+  description: "Crop, resize and compress photos to 20KB, 50KB or 100KB in your browser. Free, no login, no watermark. Your images stay on your device.",
+  alternates: { canonical: "/" },
+  applicationName: site.name,
+  icons: { icon: "/icon.svg" },
+  openGraph: { type: "website", locale: "en_IN", siteName: site.name, title: "PhotoResizeKaro — Free, private photo resizer", description: "Prepare photos and signatures in your browser. No photo uploads, login or watermarks." },
+  twitter: { card: "summary", title: "PhotoResizeKaro", description: "Free photo and signature tools. Your images stay on your device." },
+  robots: { index: true, follow: true },
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="en"><body>{children}</body></html>;
+}

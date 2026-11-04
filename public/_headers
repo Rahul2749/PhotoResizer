@@ -1,0 +1,2 @@
+# npm run build generates out/_headers from the actual exported script hashes.
+# The Docker image installs the same policy as Nginx response headers.
