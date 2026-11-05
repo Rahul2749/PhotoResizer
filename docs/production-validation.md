@@ -2,6 +2,14 @@
 
 Target: photoresizekaro.in, Ubuntu host Nginx/Certbot, dedicated Docker Compose project and loopback port 8088. These results describe local verification, not a completed remote deployment.
 
+## Focused tools and search-discovery update — 5 November 2026
+
+The export now contains 18 canonical public URLs, including seven real preconfigured tools, the tool directory, an upload-rejection guide and the operator About page. New search copy and metadata are static HTML. Schema describes actual tools and breadcrumbs without invented ratings. Existing private routes stay noindex and outside the sitemap.
+
+The final restricted Docker frontend image passed **28 unit/security tests**, **39 Chrome browser tests**, and static SEO/link checks across all 18 public pages. Container smoke checks covered routes, hashed CSP/security headers, caching, real 404s, blocked writes and permanent redirects from raw HTML aliases (including nested paths/query preservation). Browser tests verified the advertised KB defaults, an actual export within 20,000 bytes, actual 200 × 230/413 × 531 dimensions and 300-DPI JPEG bytes. Upload controls fit on the first screen at 360 × 740 and 390 × 844; the original desktop/root-editor checks also pass. The saved screenshot seo-tool-phone.png was visually reviewed.
+
+API/database code and image were unchanged; the prior integration evidence below remains historical, and no new database migration is required. A live public audit confirmed apex responses/robots/sitemap and observed a www TLS hostname mismatch. Optional www templates were reviewed but not installed or verified on the actual host. No Core Web Vitals or PageSpeed pass is claimed: the external report yielded no usable performance metrics. Google Trends was rate limited, and no exact keyword volume is reported. No remote deployment, certificate change, Search Console submission or live charge was performed during this update. See [research evidence](seo-competitor-audit.md) and [deployment steps](seo-deployment.md).
+
 ## Checkout, admin and usage update — 5 November 2026
 
 The updated checkout automatically navigates to the verified Razorpay host in the same tab, with a prominent high-contrast fallback and active-pass shortcut. The private owner route is /admin-photoresize-mgrrntech. Donations use DONATIONS_ENABLED; usage counters have a public opt-out and server disable flag.

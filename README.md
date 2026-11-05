@@ -96,3 +96,7 @@ These checks use Chrome desktop/mobile viewports. A user reported a successful p
 ## Owner dashboard and usage
 
 The owner route is `/admin-photoresize-mgrrntech`. Set server-only `ADMIN_USERNAME` and `ADMIN_PASSWORD` to seed the single owner; no default login exists. `DONATIONS_ENABLED=true` enables separate voluntary support when payments are enabled. Anonymous usage counters can be disabled in the footer or server-wide with `USAGE_METRICS_ENABLED=false`. See [admin rollout and privacy details](docs/admin-deployment.md) before upgrading; the new schema migration must run before restarting the API.
+
+## Focused tools and search visibility
+
+Seven preconfigured tool pages cover 20/50/100/200 KB, signatures, 200 × 230 pixels and a 35 × 45 mm passport-style example. The tool directory, troubleshooting guide and About page are linked in static HTML. All 18 public sitemap pages have unique metadata and checked internal links. The frontend update passed 28 unit/security and 39 browser tests plus SEO/container checks; it requires no backend migration. See [research and keyword candidates](docs/seo-competitor-audit.md) and [frontend/www rollout](docs/seo-deployment.md). The 100+ daily organic-visit target is not a guaranteed result.

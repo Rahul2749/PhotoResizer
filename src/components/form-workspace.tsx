@@ -7,6 +7,7 @@ import type { ExamPreset } from "../lib/presets";
 import Icon from "./icon";
 import PaidExports from "./paid-exports";
 import { trackUsage } from "../lib/usage";
+import type { ToolSetup } from "../lib/tool-setup";
 import { downloadName, type FileKind, type JobSummary } from "../lib/workflow";
 
 const empty: JobSummary = { status: "empty", result: null };
@@ -27,9 +28,9 @@ const copy = {
   },
 };
 
-export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
+export default function FormWorkspace({ lang, initialSetup }: { lang: "en" | "hi"; initialSetup?: ToolSetup }) {
   const t = copy[lang];
-  const [active, setActive] = useState<FileKind | "review">("photo");
+  const [active, setActive] = useState<FileKind | "review">(initialSetup?.kind || "photo");
   const [photo, setPhoto] = useState<JobSummary>(empty), [signature, setSignature] = useState<JobSummary>(empty);
   const [preset, setPreset] = useState<ExamPreset|null>(null);
   const [presetVersion,setPresetVersion] = useState(0);
@@ -62,13 +63,13 @@ export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
       }}><span className={`workflow-number ${step !== "review" && (step !== "photo" || includePhoto) && (step === "photo" ? photo : signature).status === "ready" ? "is-ready" : ""}`}>{step !== "review" && (step !== "photo" || includePhoto) && (step === "photo" ? photo : signature).status === "ready" ? <Icon name="check" size={15}/> : `0${index + 1}`}</span><span><strong>{t[step]}</strong><small>{statuses[step]}</small></span></button>)}
     </div>
     <details className="preset-disclosure"><summary>{preset ? `${lang === "en" ? "Exam preset" : "परीक्षा प्रीसेट"}: ${preset.name}` : (lang === "en" ? "Exam presets (optional)" : "परीक्षा प्रीसेट (वैकल्पिक)")}</summary><PresetPicker lang={lang} applied={preset} onApply={(next) => { setPreset(next); setPresetVersion((value) => value + 1); if (next?.photo === null) setActive("signature"); }}/></details>
-    <p className="workflow-limits">{preset ? (lang === "en" ? "Review the applied rules in Exam presets. Follow the current official instructions; settings below are editable." : "परीक्षा प्रीसेट में लागू नियम देखें। मौजूदा आधिकारिक निर्देश मानें; नीचे की सेटिंग बदल सकती है।") : (lang === "en" ? "Example limits: photo 50 KB · signature 20 KB. Change these to match your form." : "उदाहरण सीमाएँ: फ़ोटो 50 KB · हस्ताक्षर 20 KB। इन्हें अपने फ़ॉर्म के अनुसार बदलें।")}</p>
+    <p className="workflow-limits">{initialSetup&&!preset?initialSetup.label:preset ? (lang === "en" ? "Review the applied rules in Exam presets. Follow the current official instructions; settings below are editable." : "परीक्षा प्रीसेट में लागू नियम देखें। मौजूदा आधिकारिक निर्देश मानें; नीचे की सेटिंग बदल सकती है।") : (lang === "en" ? "Example limits: photo 50 KB · signature 20 KB. Change these to match your form." : "उदाहरण सीमाएँ: फ़ोटो 50 KB · हस्ताक्षर 20 KB। इन्हें अपने फ़ॉर्म के अनुसार बदलें।")}</p>
     <div role="tabpanel" id="workflow-panel-photo" aria-labelledby="workflow-tab-photo" hidden={active !== "photo"}>
-      <div hidden={!includePhoto}><ImageEditor key={`photo-${session}`} kind="photo" lang={lang} onSummary={onPhoto} presetRule={preset?.photo} presetVersion={presetVersion} presetId={preset?.id}/></div>{!includePhoto && <div className="live-capture-panel"><Icon name="image" size={36}/><h2>{lang === "en" ? "Take your photo on the official portal" : "आधिकारिक पोर्टल पर फ़ोटो लें"}</h2><p>{preset?.note[lang]}</p><a href={preset?.source} target="_blank" rel="noopener noreferrer">{lang === "en" ? "Read the official instructions" : "आधिकारिक निर्देश पढ़ें"} ↗</a></div>}
+      <div hidden={!includePhoto}><ImageEditor key={`photo-${session}`} kind="photo" lang={lang} onSummary={onPhoto} presetRule={preset?preset.photo:initialSetup?.kind==="photo"?initialSetup.rule:null} presetVersion={presetVersion} presetId={preset?.id}/></div>{!includePhoto && <div className="live-capture-panel"><Icon name="image" size={36}/><h2>{lang === "en" ? "Take your photo on the official portal" : "आधिकारिक पोर्टल पर फ़ोटो लें"}</h2><p>{preset?.note[lang]}</p><a href={preset?.source} target="_blank" rel="noopener noreferrer">{lang === "en" ? "Read the official instructions" : "आधिकारिक निर्देश पढ़ें"} ↗</a></div>}
       <div className="workflow-next"><p>{t.single}</p><button className="choose-button" onClick={() => navigate("signature", true)}>{t.nextSignature}<Icon name="arrow" size={17}/></button></div>
     </div>
     <div role="tabpanel" id="workflow-panel-signature" aria-labelledby="workflow-tab-signature" hidden={active !== "signature"}>
-      <ImageEditor key={`signature-${session}`} kind="signature" lang={lang} onSummary={onSignature} presetRule={preset?.signature} presetVersion={presetVersion} presetId={preset?.id}/>
+      <ImageEditor key={`signature-${session}`} kind="signature" lang={lang} onSummary={onSignature} presetRule={preset?preset.signature:initialSetup?.kind==="signature"?initialSetup.rule:null} presetVersion={presetVersion} presetId={preset?.id}/>
       <p className="signature-tip"><Icon name="image" size={16}/>{t.signatureTip}</p>
       <div className="workflow-next"><button className="back-to-photo" onClick={() => navigate("photo", true)}>{t.editPhoto}</button><button className="choose-button" onClick={() => navigate("review", true)}>{t.nextReview}<Icon name="arrow" size={17}/></button></div>
     </div>
@@ -78,6 +79,6 @@ export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
       <p className="review-disclaimer">{t.visual}</p>{preset?.livePhoto !== "none" && preset && <p className="review-disclaimer">{preset.note[lang]} {preset.livePhoto === "also" && (lang === "en" ? "Live photo capture is still required on the application portal." : "आवेदन पोर्टल पर लाइव फ़ोटो लेना भी बाकी है।")}</p>}<p className="pair-local-note"><Icon name="shield" size={15}/>{t.local}</p>
     </section>
     {active === "review" && <PaidExports lang={lang} photo={includePhoto?photo.result:null} signature={signature.result}/>}
-    <dialog ref={clearDialog} className="privacy-dialog" aria-labelledby="clear-session-title"><h2 id="clear-session-title">{t.clearTitle}</h2><p>{t.clearBody}</p><div className="clear-dialog-actions"><button className="back-to-photo" onClick={() => clearDialog.current?.close()}>{t.cancel}</button><button className="choose-button" onClick={() => { setPhoto(empty); setSignature(empty); setSession((value) => value + 1); setActive("photo"); clearDialog.current?.close(); document.getElementById("workflow-tab-photo")?.focus(); }}>{t.confirm}</button></div></dialog>
+    <dialog ref={clearDialog} className="privacy-dialog" aria-labelledby="clear-session-title"><h2 id="clear-session-title">{t.clearTitle}</h2><p>{t.clearBody}</p><div className="clear-dialog-actions"><button className="back-to-photo" onClick={() => clearDialog.current?.close()}>{t.cancel}</button><button className="choose-button" onClick={() => { setPhoto(empty); setSignature(empty); setSession((value) => value + 1); setActive(initialSetup?.kind || "photo"); clearDialog.current?.close(); document.getElementById(`workflow-tab-${initialSetup?.kind || "photo"}`)?.focus(); }}>{t.confirm}</button></div></dialog>
   </section>;
 }

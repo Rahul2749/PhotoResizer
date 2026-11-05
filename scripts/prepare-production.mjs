@@ -36,3 +36,4 @@ for (const file of htmlFiles) {
 }
 console.log(`Prepared ${htmlFiles.length} static pages with ${hashes.size} script hashes; no inline-script wildcard permission.`);
 await import("./verify-production.mjs");
+await import("./verify-seo.mjs");

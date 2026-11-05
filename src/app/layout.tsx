@@ -3,6 +3,7 @@ import "./globals.css";
 import "./editor-first.css";
 import "./commerce.css";
 import "./admin.css";
+import "./tool-pages.css";
 import { site } from "../lib/site";
 import { socialImage } from "../lib/seo";
 import UsageTracker from "../components/usage-tracker";

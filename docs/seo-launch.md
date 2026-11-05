@@ -1,6 +1,6 @@
 # Search launch checklist
 
-Updated 4 November 2026. Domain: https://photoresizekaro.in.
+Original checklist: 4 November 2026. Domain: https://photoresizekaro.in. For the current 5 November search-intent work, see [competitor and keyword research](seo-competitor-audit.md) and [frontend/www deployment](seo-deployment.md). The original verification figures below are historical; anonymous first-party usage counters were subsequently added with an opt-out.
 
 ## Implemented
 
