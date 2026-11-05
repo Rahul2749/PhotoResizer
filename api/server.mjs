@@ -5,6 +5,8 @@ import { Store } from "./store.mjs";
 import { RazorpayGateway } from "./gateway.mjs";
 import { PaymentService, isUuid } from "./service.mjs";
 import { readConfig, ApiError, randomToken, hash } from "./security.mjs";
+import { AdminService, adminCookie } from "./admin.mjs";
+import { UsageService } from "./usage.mjs";
 
 const cookieName = "prk_payment_session";
 const headers = { "Content-Type":"application/json; charset=utf-8", "Cache-Control":"no-store", "X-Robots-Tag":"noindex, nofollow", "Referrer-Policy":"no-referrer", "X-Content-Type-Options":"nosniff", "X-Frame-Options":"DENY", "Content-Security-Policy":"default-src 'none'; frame-ancestors 'none'" };
@@ -14,11 +16,14 @@ async function body(req, limit) {
   for await (const chunk of req) { size+=chunk.length; if(size>limit) throw new ApiError(413,"Request body is too large."); chunks.push(chunk); }
   return Buffer.concat(chunks);
 }
-function parseCookie(req) { const value=(req.headers.cookie || "").split(";").map((part)=>part.trim()).find((part)=>part.startsWith(`${cookieName}=`)); return value?.slice(cookieName.length+1); }
+function parseCookie(req, name=cookieName) { const value=(req.headers.cookie || "").split(";").map((part)=>part.trim()).find((part)=>part.startsWith(`${name}=`)); return value?.slice(name.length+1); }
 function limiter() { const entries=new Map(); return (key,limit,windowMs) => { const now=Date.now(); let entry=entries.get(key); if(!entry || entry.until<=now) entry={count:0,until:now+windowMs}; if(entries.size>=10000 && !entries.has(key)) entries.delete(entries.keys().next().value); entries.set(key,entry); if(++entry.count>limit) throw new ApiError(429,"Too many requests. Please wait and try again."); }; }
 
 export function createApi({ store, gateway, config }) {
   const service=new PaymentService(store,gateway,config), consume=limiter();
+  const admin=new AdminService(store,config), usage=new UsageService(store,config);
+  const adminCookieName=config.production?`__Host-${adminCookie}`:adminCookie;
+  const adminCookieHeader=(token,maxAge=28800)=>`${adminCookieName}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${config.production?"; Secure":""}`;
   const server=createServer(async(req,res)=>{
     const send=(status,data,extra={})=>{res.writeHead(status,{...headers,...extra});res.end(JSON.stringify(data));};
     try {
@@ -30,6 +35,32 @@ export function createApi({ store, gateway, config }) {
       consume(`${webhook?"webhook":"all"}:${ipKey}`,webhook?600:180,60000);
       if(req.method==="POST" && !webhook && req.headers.origin!==config.origin) throw new ApiError(403,"Open checkout from this website.");
       if(req.method==="POST" && !webhook && !(req.headers["content-type"] || "").startsWith("application/json")) throw new ApiError(415,"Send JSON checkout details.");
+      if(path==="/api/usage/config" && req.method==="GET"){send(200,{enabled:config.usageEnabled});return;}
+      if(path==="/api/usage" && req.method==="POST"){
+        consume(`usage:${ipKey}`,60,60000);
+        const raw=await body(req,1024);let input;try{input=JSON.parse(raw.toString("utf8"));}catch{throw new ApiError(400,"Invalid usage JSON.");}
+        await usage.record(input);send(200,{recorded:config.usageEnabled});return;
+      }
+      if(path.startsWith("/api/admin/")){
+        const token=parseCookie(req,adminCookieName);
+        if(path==="/api/admin/login" && req.method==="POST"){
+          consume(`admin-login:${ipKey}`,5,15*60000);consume("admin-login-global",30,15*60000);
+          const raw=await body(req,2048);let input;try{input=JSON.parse(raw.toString("utf8"));}catch{throw new ApiError(400,"Invalid login request.");}
+          const login=await admin.login(input);res.setHeader("Set-Cookie",adminCookieHeader(login.token));
+          send(200,{authenticated:true,username:login.username,csrfToken:login.csrfToken});return;
+        }
+        const session=await admin.session(token);
+        if(path==="/api/admin/session" && req.method==="GET"){send(200,{configured:config.adminEnabled,authenticated:Boolean(session),...session});return;}
+        if(!session)throw new ApiError(401,"Sign in to the admin panel.");
+        if(path==="/api/admin/logout" && req.method==="POST"){
+          await body(req,128);admin.checkCsrf(token,req.headers["x-csrf-token"]);await admin.logout(token);
+          res.setHeader("Set-Cookie",adminCookieHeader("",0));send(200,{signedOut:true});return;
+        }
+        if(path==="/api/admin/dashboard" && req.method==="GET"){
+          consume(`admin-dashboard:${hash(token)}`,60,60000);send(200,await admin.dashboard(url.searchParams));return;
+        }
+        throw new ApiError(404,"Admin endpoint not found.");
+      }
       if(webhook && req.method==="POST") { if(config.mode==="disabled") throw new ApiError(503,"Payments are disabled."); await service.webhook(await body(req,65536),req.headers["x-razorpay-signature"],req.headers["x-razorpay-event-id"]);send(200,{received:true});return; }
       if(callback && req.method==="GET") { let id; try{id=await service.callback(url.searchParams);}catch{res.writeHead(303,{...headers,Location:`${config.origin}/payment-status?result=pending`});res.end();return;}res.writeHead(303,{...headers,Location:`${config.origin}/payment-status?order=${id}`});res.end();return; }
       if(path==="/api/commerce/catalog" && req.method==="GET"){send(200,service.catalog());return;}
@@ -61,16 +92,18 @@ export function createApi({ store, gateway, config }) {
     }catch(error){const status=error instanceof ApiError?error.status:503;if(status>=500)console.error(JSON.stringify({event:"payment_request_failed",status}));if(!res.headersSent)send(status,{error:error instanceof ApiError?error.message:"Payment service is temporarily unavailable. Please try again."});else res.end();}
   });
   server.requestTimeout=20000;server.headersTimeout=10000;server.maxHeadersCount=40;
-  return {server,service};
+  return {server,service,admin,usage};
 }
 
 export async function main() {
   const config=readConfig(),store=new Store(config.databaseUrl);await store.healthy();
-  const {server,service}=createApi({store,gateway:new RazorpayGateway(config),config});
+  const {server,service,admin,usage}=createApi({store,gateway:new RazorpayGateway(config),config});
+  await admin.seed();await usage.cleanup();
+  const cleanupTimer=setInterval(()=>{void usage.cleanup().catch(()=>console.error("usage_cleanup_failed"));},3600000);cleanupTimer.unref();
   let busy=false;
   const timer=setInterval(async()=>{if(busy||config.mode==="disabled")return;busy=true;try{for(const order of await store.reconcileCandidates(config.mode)){try{await service.reconcile(order);}catch{console.error("payment_reconciliation_pending");}finally{await store.pool.query("UPDATE prk_orders SET updated_at=now() WHERE id=$1",[order.id]);}}}catch{console.error("payment_reconciliation_failed");}finally{busy=false;}},120000);timer.unref();
   server.listen(config.port,"0.0.0.0",()=>console.log(JSON.stringify({event:"payment_api_ready",mode:config.mode})));
-  const shutdown=()=>{clearInterval(timer);server.close(()=>{void store.close().then(()=>process.exit(0));});};
+  const shutdown=()=>{clearInterval(timer);clearInterval(cleanupTimer);server.close(()=>{void store.close().then(()=>process.exit(0));});};
   process.on("SIGTERM",shutdown);process.on("SIGINT",shutdown);
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(()=>{console.error("Payment API startup failed. Check database migration and server-only configuration.");process.exit(1);});

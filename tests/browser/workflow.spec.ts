@@ -75,7 +75,7 @@ test("photo and signature keep independent settings and download separate valida
   await expect(signature.getByRole("link", { name: "Download signature" })).toBeVisible();
   await context.setOffline(false);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "violet");
-  expect(requests.filter((request) => request.method !== "GET")).toEqual([]);
+  expect(requests.filter((request) => request.method !== "GET" && !request.url.endsWith("/api/usage"))).toEqual([]);
   expect(requests.filter((request) => !request.url.startsWith(new URL(page.url()).origin + "/") && !request.url.startsWith("blob:"))).toEqual([]);
 });
 

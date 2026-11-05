@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./editor-first.css";
 import "./commerce.css";
+import "./admin.css";
 import { site } from "../lib/site";
 import { socialImage } from "../lib/seo";
+import UsageTracker from "../components/usage-tracker";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.origin),
@@ -18,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}<UsageTracker/></body></html>;
 }

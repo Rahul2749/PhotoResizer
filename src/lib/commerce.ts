@@ -10,3 +10,6 @@ export async function commerceRequest<T>(path: string, init: RequestInit = {}): 
   return data;
 }
 export const rupees = (amount: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount / 100);
+export function safeCheckoutUrl(value?: string | null): string | null {
+  try { const url = new URL(value || ""); return url.protocol === "https:" && url.hostname === "rzp.io" && !url.port && !url.username && !url.password ? url.href : null; } catch { return null; }
+}

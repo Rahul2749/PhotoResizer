@@ -85,8 +85,14 @@ The page must load before network disconnection. Worker assets are requested on 
 
 ## Verification
 
+The checkout/admin update passed **28 unit/security tests, 23 PostgreSQL integration tests and 33 browser tests**. Both final Docker images and frontend/API smoke checks passed. A real local browser/API check verified admin login, private records, anonymous usage persistence and logout. These tests use fixtures and do not verify real Razorpay funds. See [current validation evidence](docs/production-validation.md).
+
 Payment release checks on 5 November 2026: **26 unit/security tests**, **15 integration tests using a real isolated PostgreSQL database and simulated gateway**, and **24 Chrome browser tests** passed. Both Docker images built successfully, and frontend/API smoke checks passed with checkout disabled. The browser tests inspect real ZIP image bytes and A4 PDF dimensions, required email, donation limits, checkout data boundaries and rechecked access expiry. Refund/duplicate/reordered-event and interrupted-checkout behavior is exercised against PostgreSQL. Production dependency audits reported zero known advisories for both packages. Real Razorpay test-mode and live settlement checks remain account-configuration steps; no live purchase was made by these tests.
 
 On 4 November 2026, the production static build, TypeScript check, **22 unit/preset tests** and **17 Chrome browser tests** passed. Browser tests ran against the actual restricted Docker runtime and cover real downloads, independent workflows, mobile/Hindi layout, offline export, preset/DPI bytes, pre-decode memory limits, worker/compatibility rotation, legitimate hydration and rejection of an unapproved inline script. Docker smoke checks cover routes, headers, caching, rejected POSTs, health and real 404 responses. The production dependency audit reported no known advisories at that time.
 
 These checks use Chrome desktop/mobile viewports. A user reported a successful phone smoke test; a recorded device/browser matrix remains before public beta. Public DNS, TLS, renewal, mailbox operation and the actual VPS remain deployment-time checks. Preset sources were reviewed on 25 October 2026 and are due for maintenance on 24 November 2026; hardening did not re-verify their official requirements.
+
+## Owner dashboard and usage
+
+The owner route is `/admin-photoresize-mgrrntech`. Set server-only `ADMIN_USERNAME` and `ADMIN_PASSWORD` to seed the single owner; no default login exists. `DONATIONS_ENABLED=true` enables separate voluntary support when payments are enabled. Anonymous usage counters can be disabled in the footer or server-wide with `USAGE_METRICS_ENABLED=false`. See [admin rollout and privacy details](docs/admin-deployment.md) before upgrading; the new schema migration must run before restarting the API.

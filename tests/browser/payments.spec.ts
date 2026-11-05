@@ -5,18 +5,39 @@ import {PDFDocument} from "pdf-lib";
 
 const pending={id:"23456789-1234-1234-1234-123456789abc",productId:"zip-day",mode:"test",amountPaise:500,currency:"INR",status:"pending",createdAt:"2026-11-04T00:00:00Z",paidAt:null,expiresAt:null,refundedPaise:0,paymentId:null,checkoutUrl:"https://rzp.io/i/testOnly",restoreCode:"PRK-abcdefghijklmnopqrstuvwx"};
 async function mockPayments(page:Page,features:string[]=[]){
- await page.route("**/api/commerce/**",async(route)=>{const path=new URL(route.request().url()).pathname;const json=path.endsWith("/catalog")?{mode:"test",enabled:true,donationsEnabled:true}:path.endsWith("/access")?{mode:"test",features,expiresAt:"2099-01-01T00:00:00Z",orders:[]}:path.endsWith("/checkout")?{...pending,...JSON.parse(route.request().postData()||"{}")}:{ready:true};await route.fulfill({json});});
+ await page.route("https://rzp.io/**",route=>route.fulfill({status:204}));
+ await page.route("**/api/commerce/**",async(route)=>{const path=new URL(route.request().url()).pathname;const json=path.endsWith("/catalog")?{mode:"test",enabled:true,donationsEnabled:true}:path.endsWith("/access")?{mode:"test",features,expiresAt:"2099-01-01T00:00:00Z",orders:[]}:path.endsWith("/checkout")?{...pending,...JSON.parse(route.request().postData()||"{}")} : path.includes("/orders/")?pending:{ready:true};await route.fulfill({json});});
 }
 test("checkout requires email, sends only payment data and preserves its restore code",async({page})=>{
  await mockPayments(page);await page.goto("/pricing");await expect(page.getByText("TEST MODE",{exact:false})).toBeVisible();
+ // Inspect recovery details before navigation; the separate navigation test runs the real timer.
+ await page.clock.install({time:new Date("2026-11-05T00:00:00Z")});await page.clock.pauseAt(new Date("2026-11-05T00:00:01Z"));
  const checkoutRequests:string[]=[];page.on("request",(request)=>{if(request.url().endsWith("/checkout"))checkoutRequests.push(request.postData()||"");});
  const buy=page.getByRole("button",{name:"Get ZIP Day Pass — ₹5",exact:true});await buy.click();expect(checkoutRequests).toHaveLength(0);await page.getByLabel("Email for this payment").fill("buyer@example.test");await buy.click();
- await expect(page.getByRole("heading",{name:"Your checkout is ready"})).toBeVisible();expect(JSON.parse(checkoutRequests[0])).toEqual({productId:"zip-day",email:"buyer@example.test"});
- await expect(page.locator(".restore-code").first()).toHaveText(pending.restoreCode);await expect(page.getByRole("link",{name:"Continue to Razorpay — ₹5"})).toHaveAttribute("target","_blank");
+ await expect(page.getByRole("heading",{name:"Opening Razorpay checkout…"})).toBeVisible();expect(JSON.parse(checkoutRequests[0])).toEqual({productId:"zip-day",email:"buyer@example.test"});
+ await expect(page.getByRole("link",{name:"Continue to Razorpay — ₹5"})).toHaveCSS("color","rgb(255, 255, 255)");
+ await page.getByText("Your restore code & order details",{exact:true}).click();await expect(page.locator(".restore-code").first()).toHaveText(pending.restoreCode);
 });
 test("donations start at ₹5 and remain separate from feature purchases",async({page},testInfo)=>{
  await mockPayments(page);await page.setViewportSize({width:390,height:844});await page.goto("/donate");await page.getByLabel("Email for this payment").fill("supporter@example.test");await page.getByLabel("Amount in rupees").fill("4");let payload:unknown=null;page.on("request",(request)=>{if(request.url().endsWith("/checkout"))payload=JSON.parse(request.postData()!);});
- await page.getByRole("button",{name:"Donate ₹4",exact:true}).click();expect(payload).toBeNull();await page.getByRole("button",{name:"₹5",exact:true}).click();await page.getByRole("button",{name:"Donate ₹5",exact:true}).click();await expect(page.getByRole("heading",{name:"Your checkout is ready"})).toBeVisible();expect(payload).toEqual({productId:"donation",email:"supporter@example.test",amountPaise:500});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath("donate-phone.png"),fullPage:true});
+ await page.getByRole("button",{name:"Donate ₹4",exact:true}).click();expect(payload).toBeNull();await page.getByRole("button",{name:"₹5",exact:true}).click();await page.getByRole("button",{name:"Donate ₹5",exact:true}).click();await expect(page.getByRole("heading",{name:"Opening Razorpay checkout…"})).toBeVisible();expect(payload).toEqual({productId:"donation",email:"supporter@example.test",amountPaise:500});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath("donate-phone.png"),fullPage:true});
+});
+test("one tap on a paid plan automatically navigates to the verified gateway in the same tab",async({page})=>{
+ await mockPayments(page);await page.route("https://rzp.io/**",route=>route.fulfill({contentType:"text/html",body:"<h1>Mock secure checkout</h1>"}));
+ await page.setViewportSize({width:390,height:844});await page.goto("/pricing");await page.getByLabel("Email for this payment").fill("buyer@example.test");
+ await page.getByRole("button",{name:"Get ZIP Day Pass — ₹5",exact:true}).click();await expect(page).toHaveURL(pending.checkoutUrl);await expect(page.getByRole("heading",{name:"Mock secure checkout"})).toBeVisible();
+});
+test("mobile checkout fallback appears above the offers with readable text",async({page},testInfo)=>{
+ await mockPayments(page);await page.setViewportSize({width:360,height:740});await page.goto("/pricing");await page.getByLabel("Email for this payment").fill("buyer@example.test");await page.getByRole("button",{name:"Get ZIP Day Pass — ₹5",exact:true}).click();
+ const next=page.getByRole("link",{name:"Continue to Razorpay — ₹5"});await expect(next).toBeInViewport({ratio:1});await expect(next).toHaveCSS("color","rgb(255, 255, 255)");await expect(page.locator(".plan-cards")).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath("checkout-phone.png"),fullPage:true});
+});
+test("checkout errors stay visible and an unexpected external URL is never opened",async({page})=>{
+ await mockPayments(page);await page.route("**/api/commerce/checkout",route=>route.fulfill({json:{...pending,checkoutUrl:"https://untrusted.example/payment"}}));
+ await page.setViewportSize({width:390,height:844});await page.goto("/pricing");await page.getByLabel("Email for this payment").fill("buyer@example.test");await page.getByRole("button",{name:"Get ZIP Day Pass — ₹5",exact:true}).click();
+ await expect(page.locator(".commerce-feedback").getByRole("alert")).toContainText("Your order was saved");await expect(page.locator(".commerce-feedback").getByRole("alert")).toBeInViewport();await expect(page.getByRole("link",{name:/Continue to Razorpay/})).toHaveCount(0);await expect(page).toHaveURL(/\/pricing$/);
+});
+test("an active pass offers the editor instead of selling the same access again",async({page})=>{
+ await mockPayments(page,["zip"]);await page.goto("/pricing");await expect(page.getByRole("link",{name:"Pass active — open editor",exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Get ZIP Day Pass — ₹5",exact:true})).toHaveCount(0);await expect(page.getByRole("button",{name:"Get Print + ZIP Day Pass — ₹10",exact:true})).toBeEnabled();
 });
 async function readyPair(page:Page){
  await page.goto("/");

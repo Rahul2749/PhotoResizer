@@ -10,6 +10,7 @@ COPY shared ./shared
 COPY public ./public
 COPY scripts ./scripts
 COPY api/security.mjs ./api/security.mjs
+COPY api/admin.mjs ./api/admin.mjs
 COPY tests ./tests
 RUN npm test && npm run build
 

@@ -36,11 +36,15 @@ export function readConfig(env = process.env) {
   if (!/^[a-f0-9]{64}$/i.test(env.PAYMENTS_ENCRYPTION_KEY || "")) throw new Error("PAYMENTS_ENCRYPTION_KEY must be 32 random bytes encoded as 64 hex characters.");
   if (mode !== "disabled" && (!(env.RAZORPAY_KEY_ID || "").startsWith(`rzp_${mode}_`) || !env.RAZORPAY_KEY_SECRET || (env.RAZORPAY_WEBHOOK_SECRET || "").length < 24)) throw new Error("Configure matching Razorpay API keys and a webhook secret of at least 24 characters.");
   if (mode === "live" && env.PAYMENTS_LIVE_ENABLED !== "true") throw new Error("Enable live payments explicitly after merchant/test validation.");
+  const adminUsername = env.ADMIN_USERNAME || "", adminPassword = env.ADMIN_PASSWORD || "";
+  if ((adminUsername || adminPassword) && (!/^[a-zA-Z0-9._-]{3,64}$/.test(adminUsername) || adminPassword.length < 16 || adminPassword.length > 256 || /[\r\n\0]/.test(adminPassword))) throw new Error("Set ADMIN_USERNAME (3–64 letters, numbers, dots, underscores or hyphens) and ADMIN_PASSWORD (16–256 characters) together.");
   return {
     origin: origin.origin, production, mode, databaseUrl: env.DATABASE_URL,
     key: Buffer.from(env.PAYMENTS_ENCRYPTION_KEY, "hex"), keyId: env.RAZORPAY_KEY_ID || "", keySecret: env.RAZORPAY_KEY_SECRET || "",
     webhookSecrets: [env.RAZORPAY_WEBHOOK_SECRET, env.RAZORPAY_WEBHOOK_SECRET_PREVIOUS].filter(Boolean),
-    accountId: env.RAZORPAY_ACCOUNT_ID || "", supportEnabled: env.SUPPORT_PAYMENTS_APPROVED === "true",
+    accountId: env.RAZORPAY_ACCOUNT_ID || "", supportEnabled: env.DONATIONS_ENABLED !== "false",
+    adminUsername, adminPassword, adminEnabled: Boolean(adminUsername && adminPassword),
+    usageEnabled: env.USAGE_METRICS_ENABLED !== "false",
     trustProxy: env.TRUST_PROXY === "true", port: Number(env.PORT || 3000),
   };
 }

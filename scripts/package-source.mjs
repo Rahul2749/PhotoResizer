@@ -9,7 +9,7 @@ const sources = [
   "Dockerfile", "compose.yaml", "compose.payments.yaml", ".dockerignore", ".gitignore", ".gitattributes", ".env.example", ".env.api.example",
   ".github", "deploy", "api", "shared", "src", "public", "scripts", "tests", "README.md",
   "photoresizekaro-phased-plan.md", "docs/deployment-ubuntu.md",
-  "docs/production-validation.md", "docs/preset-research.md", "docs/seo-launch.md", "docs/payments-deployment.md",
+  "docs/production-validation.md", "docs/preset-research.md", "docs/seo-launch.md", "docs/payments-deployment.md", "docs/admin-deployment.md",
 ];
 const date = new Date().toISOString().slice(0, 10);
 const name = `photoresizekaro-source-${date}.tar.gz`;

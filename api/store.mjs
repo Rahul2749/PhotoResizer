@@ -6,7 +6,7 @@ import { ApiError, hash } from "./security.mjs";
 export class Store {
   constructor(connectionString) { this.pool = new pg.Pool({ connectionString, max: 5, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000, statement_timeout: 15000 }); this.pool.on("error", () => console.error("payment_database_connection_error")); }
   async migrate() { await this.pool.query(await readFile(new URL("./schema.sql", import.meta.url), "utf8")); }
-  async healthy() { await this.pool.query("SELECT id FROM prk_sessions LIMIT 0"); return true; }
+  async healthy() { await this.pool.query("SELECT id FROM prk_sessions LIMIT 0; SELECT day FROM prk_usage_totals LIMIT 0; SELECT id FROM prk_admin_users LIMIT 0"); return true; }
   async transaction(work) { const client = await this.pool.connect(); try { await client.query("BEGIN"); const result = await work(client); await client.query("COMMIT"); return result; } catch (error) { await client.query("ROLLBACK"); throw error; } finally { client.release(); } }
   async session(token) { if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null; return (await this.pool.query("SELECT id FROM prk_sessions WHERE token_hash=$1 AND expires_at>now()", [hash(token)])).rows[0] || null; }
   async createSession(token) { const id = randomUUID(); await this.pool.query("INSERT INTO prk_sessions(id,token_hash,expires_at) VALUES($1,$2,now()+interval '30 days')", [id, hash(token)]); return { id }; }

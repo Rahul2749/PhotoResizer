@@ -1,0 +1,7 @@
+{
+  "events": ["page_view", "image_processed", "crop_completed", "download", "zip_download", "print_download"],
+  "tools": ["site", "photo", "signature", "pair"],
+  "presets": ["custom", "jee-main-2026", "neet-ug-2026", "cuet-ug-2026", "ctet-sept-2026", "csir-net-june-2026", "ibps-2026-guide", "sbi-general-guide", "ssc-cgl-2026"],
+  "sizeBuckets": ["none", "under_20kb", "20_50kb", "50_100kb", "100_200kb", "200_500kb", "over_500kb"],
+  "dimensionBuckets": ["none", "up_to_300px", "301_1000px", "over_1000px"]
+}

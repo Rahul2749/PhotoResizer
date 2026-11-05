@@ -2,7 +2,7 @@
 
 Prepared 5 November 2026 for photoresizekaro.in. Seller supplied by the owner: **MGRRNTECH**, **contact@photoresizekaro.in**, **+91 82759 28446**. Editor support remains available at support@photoresizekaro.in.
 
-The existing free site is static. This release adds a separate Node.js payment API, PostgreSQL records and Razorpay-hosted Payment Links. Images continue to be processed in browser memory. Do not collect live payments until your merchant account, credentials, webhook delivery, payment return and real delivery/refund checks have been validated.
+The frontend is static. The payment release adds a separate Node.js payment API, PostgreSQL records and Razorpay-hosted Payment Links. Images continue to be processed in browser memory. Do not collect live payments until your merchant account, credentials, webhook delivery, payment return and real delivery/refund checks have been validated.
 
 ## Products and customer flow
 
@@ -30,7 +30,7 @@ Browser -- HTTPS --> existing Ubuntu Nginx --> web container :8080
                                       signed webhook events
 ```
 
-Razorpay checkout opens on the provider's site in a separate tab. There is no payment SDK, iframe, analytics or third-party checkout script in the editor. No image bytes, filenames, thumbnails, photo metadata, card numbers or UPI PINs are accepted by the API. Its JSON routes accept only the fields needed for payment operations, and its body limit is 64 KB for webhooks / 4 KB for checkout.
+Choosing a pass or support amount automatically opens Razorpay checkout in the same tab, with a visible fallback link. Pricing opened from the editor remains in a separate tab from the editor. There is no payment SDK, iframe, analytics or third-party checkout script in the editor. No image bytes, filenames, thumbnails, photo metadata, card numbers or UPI PINs are accepted by the API. Its JSON routes accept only the fields needed for payment operations, and its body limit is 64 KB for webhooks / 4 KB for checkout.
 
 The API runs unprivileged with a read-only filesystem, dropped capabilities and a 192 MB memory limit. It has no public published port. Only the API joins the existing database network. The frontend's `/api/` proxy resolves the API container dynamically, so the free site can still run without the API; checkout then stays unavailable. Use the opt-in `compose.payments.yaml` overlay to enable the backend.
 
@@ -153,7 +153,7 @@ Use a separate random webhook secret of at least 24 characters. Configure this t
 https://photoresizekaro.in/api/commerce/webhook
 ```
 
-Enable **payment_link.paid**, **refund.processed** and **payment.dispute.created** events. The API also periodically reconciles pending/active orders against Razorpay. Set `SUPPORT_PAYMENTS_APPROVED=true` for the approved/tested support model; otherwise donation checkout remains disabled.
+Enable **payment_link.paid**, **refund.processed** and **payment.dispute.created** events. The API also periodically reconciles pending/active orders against Razorpay. Donation checkout defaults to enabled when payments are enabled; set `DONATIONS_ENABLED=false` to disable it explicitly. See [owner dashboard rollout](admin-deployment.md) for the replacement of the earlier SUPPORT_PAYMENTS_APPROVED setting.
 
 After saving server configuration, recreate just the API:
 

@@ -10,7 +10,7 @@
     "preview:lan": "node scripts/serve.mjs --lan",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/image-core.test.ts tests/presets.test.ts tests/inspect-image.test.ts tests/payment-security.test.mjs",
-    "test:payments": "node --test tests/payments.test.mjs",
+    "test:payments": "node --test --test-concurrency=1 tests/payments.test.mjs tests/admin.test.mjs",
     "api:start": "node api/server.mjs",
     "api:migrate": "node api/migrate.mjs",
     "test:browser": "playwright test",

@@ -55,7 +55,7 @@ test("validates a real export, invalidates edits, rotates, processes offline and
   await expect(page.getByRole("heading", { name: "Drop your photo here" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Download photo" })).toHaveCount(0);
   expect(requests.filter((request) => !request.url.startsWith(new URL(page.url()).origin + "/") && !request.url.startsWith("blob:"))).toEqual([]);
-  expect(requests.filter((request) => request.method !== "GET")).toEqual([]);
+  expect(requests.filter((request) => request.method !== "GET" && !request.url.endsWith("/api/usage"))).toEqual([]);
   expect(requests.some((request) => request.url.includes("synthetic-test-photo"))).toBe(false);
   expect(errors).toEqual([]);
 });

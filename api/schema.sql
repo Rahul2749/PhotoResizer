@@ -37,4 +37,33 @@ CREATE TABLE IF NOT EXISTS prk_refunds (
   amount_paise integer NOT NULL CHECK(amount_paise>0), created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS prk_refunds_payment ON prk_refunds(payment_id);
+CREATE INDEX IF NOT EXISTS prk_orders_reporting ON prk_orders(created_at DESC,id DESC);
+CREATE TABLE IF NOT EXISTS prk_admin_users (
+  id uuid PRIMARY KEY, username text UNIQUE NOT NULL, password_hash text NOT NULL,
+  active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS prk_one_active_admin ON prk_admin_users(active) WHERE active;
+CREATE TABLE IF NOT EXISTS prk_admin_sessions (
+  token_hash char(64) PRIMARY KEY, user_id uuid NOT NULL REFERENCES prk_admin_users(id),
+  created_at timestamptz NOT NULL DEFAULT now(), last_seen_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL
+);
+CREATE INDEX IF NOT EXISTS prk_admin_session_expiry ON prk_admin_sessions(expires_at);
+CREATE TABLE IF NOT EXISTS prk_usage_visits (
+  day date NOT NULL, visitor_hash char(64) NOT NULL,
+  first_seen_at timestamptz NOT NULL DEFAULT now(), last_seen_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY(day,visitor_hash)
+);
+CREATE TABLE IF NOT EXISTS prk_usage_events (
+  event_hash char(64) PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS prk_usage_recent ON prk_usage_visits(last_seen_at);
+CREATE INDEX IF NOT EXISTS prk_usage_event_expiry ON prk_usage_events(created_at);
+CREATE TABLE IF NOT EXISTS prk_usage_totals (
+  day date NOT NULL, event text NOT NULL, tool text NOT NULL,
+  preset text NOT NULL, size_bucket text NOT NULL, dimension_bucket text NOT NULL,
+  count bigint NOT NULL DEFAULT 0 CHECK(count>=0),
+  PRIMARY KEY(day,event,tool,preset,size_bucket,dimension_bucket)
+);
 COMMIT;
