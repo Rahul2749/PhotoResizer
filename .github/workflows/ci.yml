@@ -10,6 +10,15 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+        env:
+          POSTGRES_DB: photoresizekaro_test
+          POSTGRES_USER: prk_test
+          POSTGRES_PASSWORD: ci-fixture-only
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U prk_test -d photoresizekaro_test" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
@@ -23,19 +32,35 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm audit --omit=dev
+      - run: npm audit --omit=dev --prefix api
       - run: npm test
+      - run: npm run test:payments
+        env:
+          TEST_DATABASE_URL: postgresql://prk_test:ci-fixture-only@127.0.0.1:5432/photoresizekaro_test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: docker build -t photoresizekaro:ci .
+      - run: docker build -f api/Dockerfile -t photoresizekaro-api:ci .
+      - name: Connect the isolated API to the test database
+        run: |
+          docker network create photoresizekaro-ci
+          docker network connect --alias payments-db photoresizekaro-ci ${{ job.services.postgres.id }}
+          docker run -d --name photoresizekaro-api-ci --network photoresizekaro-ci --network-alias api --read-only --tmpfs /tmp:rw,noexec,nosuid,size=16m,mode=1777 --cap-drop ALL --security-opt no-new-privileges:true --memory 192m --pids-limit 64 -e APP_ORIGIN=https://photoresizekaro.in -e DATABASE_URL=postgresql://prk_test:ci-fixture-only@payments-db:5432/photoresizekaro_test -e PAYMENTS_DATABASE_NAME=photoresizekaro_test -e PAYMENTS_MODE=disabled -e PAYMENTS_ENCRYPTION_KEY=9999999999999999999999999999999999999999999999999999999999999999 photoresizekaro-api:ci
       - name: Start the read-only, unprivileged image
-        run: docker run -d --name photoresizekaro-ci --read-only --tmpfs /tmp:rw,noexec,nosuid,size=32m,mode=1777 --cap-drop ALL --security-opt no-new-privileges:true --memory 128m --pids-limit 64 -p 127.0.0.1:18088:8080 photoresizekaro:ci
+        run: docker run -d --name photoresizekaro-ci --network photoresizekaro-ci --read-only --tmpfs /tmp:rw,noexec,nosuid,size=32m,mode=1777 --cap-drop ALL --security-opt no-new-privileges:true --memory 128m --pids-limit 64 -p 127.0.0.1:18088:8080 photoresizekaro:ci
       - run: node scripts/smoke-test.mjs http://127.0.0.1:18088
+      - run: node scripts/smoke-payments.mjs http://127.0.0.1:18088
       - run: npm run test:browser
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:18088
       - name: Container logs
         if: always()
-        run: docker logs photoresizekaro-ci || true
+        run: |
+          docker logs photoresizekaro-ci || true
+          docker logs photoresizekaro-api-ci || true
       - name: Stop the test container
         if: always()
-        run: docker rm -f photoresizekaro-ci || true
+        run: |
+          docker rm -f photoresizekaro-ci photoresizekaro-api-ci || true
+          docker network disconnect photoresizekaro-ci ${{ job.services.postgres.id }} || true
+          docker network rm photoresizekaro-ci || true

@@ -6,10 +6,10 @@ import { createHash } from "node:crypto";
 const sources = [
   "package.json", "package-lock.json", "next.config.ts", "next-env.d.ts",
   "tsconfig.json", "postcss.config.mjs", "playwright.config.ts",
-  "Dockerfile", "compose.yaml", ".dockerignore", ".gitignore", ".gitattributes", ".env.example",
-  ".github", "deploy", "src", "public", "scripts", "tests", "README.md",
+  "Dockerfile", "compose.yaml", "compose.payments.yaml", ".dockerignore", ".gitignore", ".gitattributes", ".env.example", ".env.api.example",
+  ".github", "deploy", "api", "shared", "src", "public", "scripts", "tests", "README.md",
   "photoresizekaro-phased-plan.md", "docs/deployment-ubuntu.md",
-  "docs/production-validation.md", "docs/preset-research.md", "docs/seo-launch.md",
+  "docs/production-validation.md", "docs/preset-research.md", "docs/seo-launch.md", "docs/payments-deployment.md",
 ];
 const date = new Date().toISOString().slice(0, 10);
 const name = `photoresizekaro-source-${date}.tar.gz`;
@@ -25,7 +25,7 @@ for (const required of ["Dockerfile", "compose.yaml", "deploy/container/nginx.co
   if (!entries.has(required)) throw new Error(`Source archive is missing ${required}.`);
 }
 for (const entry of entries) {
-  if (entry.split("/").some((part) => [".git", "node_modules", ".generated", ".aws"].includes(part)) || /(^|\/)\.env($|\.)/.test(entry) && entry !== ".env.example") throw new Error(`Unexpected private/generated file: ${entry}`);
+  if (entry.split("/").some((part) => [".git", "node_modules", ".generated", ".aws"].includes(part)) || /(^|\/)\.env($|\.)/.test(entry) && ![".env.example",".env.api.example"].includes(entry)) throw new Error(`Unexpected private/generated file: ${entry}`);
 }
 const digest = createHash("sha256").update(await readFile(`release/${name}`)).digest("hex");
 await writeFile(`release/${name}.sha256`, `${digest}  ${name}\n`);

@@ -9,13 +9,19 @@
     "start": "node scripts/serve.mjs",
     "preview:lan": "node scripts/serve.mjs --lan",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/image-core.test.ts tests/presets.test.ts tests/inspect-image.test.ts",
+    "test": "node --experimental-strip-types --test tests/image-core.test.ts tests/presets.test.ts tests/inspect-image.test.ts tests/payment-security.test.mjs",
+    "test:payments": "node --test tests/payments.test.mjs",
+    "api:start": "node api/server.mjs",
+    "api:migrate": "node api/migrate.mjs",
     "test:browser": "playwright test",
     "check:production": "node scripts/verify-production.mjs",
     "package:source": "node scripts/package-source.mjs"
   },
   "dependencies": {
+    "fflate": "0.8.3",
     "next": "16.4.5",
+    "pdf-lib": "1.17.1",
+    "pg": "8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
@@ -23,6 +29,7 @@
     "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.1.0",

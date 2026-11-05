@@ -5,6 +5,7 @@ import ImageEditor from "./image-editor";
 import PresetPicker from "./preset-picker";
 import type { ExamPreset } from "../lib/presets";
 import Icon from "./icon";
+import PaidExports from "./paid-exports";
 import { downloadName, type FileKind, type JobSummary } from "../lib/workflow";
 
 const empty: JobSummary = { status: "empty", result: null };
@@ -75,6 +76,7 @@ export default function FormWorkspace({ lang }: { lang: "en" | "hi" }) {
       <div className="review-cards">{((includePhoto ? [["photo",photo],["signature",signature]] : [["signature",signature]]) as [FileKind,JobSummary][]).map(([kind, job]) => <article key={kind} className="review-card" aria-label={t[kind]}><div className="review-card-heading"><h3>{t[kind]}</h3><span>{t[job.status]}</span></div><div className="review-image">{job.result ? <img src={job.result.url} alt={lang === "en" ? `Prepared ${kind}` : `${t[kind]} का परिणाम`} width={job.result.width} height={job.result.height}/> : <div><Icon name="image" size={32}/><p>{t.missing}</p></div>}</div>{job.result && <dl className="review-file-details"><div><dt>{lang === "en" ? "File size" : "फ़ाइल साइज़"}</dt><dd>{(job.result.bytes / 1000).toFixed(2)} KB · {job.result.minBytes / 1000}–{job.result.maxBytes / 1000} KB</dd></div><div><dt>{lang === "en" ? "Dimensions" : "माप"}</dt><dd>{job.result.width} × {job.result.height} px</dd></div><div><dt>{lang === "en" ? "Format" : "फ़ॉर्मैट"}</dt><dd>{job.result.mime.split("/")[1].toUpperCase()}</dd></div></dl>}<div className="review-card-actions"><button className="back-to-photo" onClick={() => navigate(kind, true)}>{kind === "photo" ? t.editPhoto : t.editSignature}</button>{job.result && <a className="download-button" href={job.result.url} download={downloadName(kind, job.result.width, job.result.height, job.result.mime)}><Icon name="download" size={16}/>{kind === "photo" ? t.downloadPhoto : t.downloadSignature}</a>}</div></article>)}</div>
       <p className="review-disclaimer">{t.visual}</p>{preset?.livePhoto !== "none" && preset && <p className="review-disclaimer">{preset.note[lang]} {preset.livePhoto === "also" && (lang === "en" ? "Live photo capture is still required on the application portal." : "आवेदन पोर्टल पर लाइव फ़ोटो लेना भी बाकी है।")}</p>}<p className="pair-local-note"><Icon name="shield" size={15}/>{t.local}</p>
     </section>
+    {active === "review" && <PaidExports lang={lang} photo={includePhoto?photo.result:null} signature={signature.result}/>}
     <dialog ref={clearDialog} className="privacy-dialog" aria-labelledby="clear-session-title"><h2 id="clear-session-title">{t.clearTitle}</h2><p>{t.clearBody}</p><div className="clear-dialog-actions"><button className="back-to-photo" onClick={() => clearDialog.current?.close()}>{t.cancel}</button><button className="choose-button" onClick={() => { setPhoto(empty); setSignature(empty); setSession((value) => value + 1); setActive("photo"); clearDialog.current?.close(); document.getElementById("workflow-tab-photo")?.focus(); }}>{t.confirm}</button></div></dialog>
   </section>;
 }

@@ -143,7 +143,7 @@ export default function ImageEditor({kind,lang,onSummary,presetRule,presetVersio
   }
 
   useEffect(() => {
-    onSummary({status:loading||busy?"processing":result?(result.fits?"ready":"adjust"):source?"editing":"empty", result:result?.fits?{url:result.url,width:result.width,height:result.height,bytes:result.blob.size,mime:result.blob.type,minBytes:result.minBytes,maxBytes:result.maxBytes}:null});
+    onSummary({status:loading||busy?"processing":result?(result.fits?"ready":"adjust"):source?"editing":"empty", result:result?.fits?{url:result.url,blob:result.blob,width:result.width,height:result.height,bytes:result.blob.size,mime:result.blob.type,minBytes:result.minBytes,maxBytes:result.maxBytes}:null});
   }, [source,result,busy,loading,onSummary]);
 
   return (

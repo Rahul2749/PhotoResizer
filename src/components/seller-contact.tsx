@@ -1,0 +1,2 @@
+import seller from "../../shared/seller.json";
+export default function SellerContact(){return <section className="seller-contact"><h2>Seller and payment contact</h2><p><strong>{seller.name}</strong><br/><a href={`mailto:${seller.email}`}>{seller.email}</a><br/><a href={`tel:${seller.phone}`}>{seller.displayPhone}</a></p><p>Include your order reference when asking about a payment. Keep restore codes and payment credentials private.</p></section>;}

@@ -2,6 +2,10 @@
 
 Target: photoresizekaro.in, Ubuntu host Nginx/Certbot, dedicated Docker Compose project and loopback port 8088. These results describe local verification, not a completed remote deployment.
 
+## Payment release checks — 5 November 2026
+
+The optional payment release adds Node.js/PostgreSQL, ₹5 ZIP and ₹10 Print + ZIP day passes, required email, separate support payments from ₹5, and MGRRNTECH's supplied public payment contact. Both frontend/API images built; 26 unit/security tests, 15 real-PostgreSQL integration tests with a simulated provider, and 24 browser tests passed. Frontend and payment-API smoke checks passed in restricted, isolated local containers. Tests verified actual ZIP image bytes and A4 PDF dimensions. No live keys were supplied, no Razorpay charge was created, and no VPS database or runtime was changed by these preparation checks. See [the payments guide](payments-deployment.md) for test/live configuration and remaining merchant validation. The original free-launch evidence below is historical.
+
 ## Completed checks
 
 - TypeScript: `npm run typecheck` passed.

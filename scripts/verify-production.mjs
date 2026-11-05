@@ -5,7 +5,7 @@ import path from "node:path";
 const manifest = JSON.parse(await readFile(".generated/security-policy.json", "utf8"));
 const scriptPolicy = manifest.headers["Content-Security-Policy"].split(";").find((entry) => entry.trim().startsWith("script-src "));
 assert.ok(scriptPolicy && !scriptPolicy.includes("unsafe-inline") && !scriptPolicy.includes("unsafe-eval"));
-for (const [route, file] of [["", "index.html"], ["/trust", "trust.html"], ["/privacy", "privacy.html"], ["/terms", "terms.html"], ["/contact", "contact.html"]]) {
+for (const [route, file] of [["", "index.html"], ["/trust", "trust.html"], ["/privacy", "privacy.html"], ["/terms", "terms.html"], ["/contact", "contact.html"], ["/pricing","pricing.html"], ["/donate","donate.html"], ["/refunds","refunds.html"]]) {
   const html = await readFile(path.join("out", file), "utf8");
   assert.ok(html.includes(`href="https://photoresizekaro.in${route}"`), `Missing canonical URL for ${file}`);
   assert.ok(html.includes('http-equiv="Content-Security-Policy"'), `Missing static CSP for ${file}`);

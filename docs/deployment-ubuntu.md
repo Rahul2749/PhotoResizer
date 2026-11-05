@@ -2,6 +2,8 @@
 
 Prepared 4 November 2026 for:
 
+**For the optional payment/API release, continue with [payments-deployment.md](payments-deployment.md).** This original guide describes the static free launch. The payment release needs the additional API service, separate PostgreSQL database/role, server-only credentials, opt-in Compose overlay and updated host request-body limit. Once enabled, use both Compose files for updates.
+
 - Repository: `https://github.com/Rahul2749/PhotoResizer`
 - Domain: `photoresizekaro.in`
 - Support: `support@photoresizekaro.in`

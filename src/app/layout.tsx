@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./editor-first.css";
+import "./commerce.css";
 import { site } from "../lib/site";
 import { socialImage } from "../lib/seo";
 

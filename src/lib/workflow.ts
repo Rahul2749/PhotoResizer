@@ -2,7 +2,7 @@ export type FileKind = "photo" | "signature";
 
 export type JobSummary = {
   status: "empty" | "editing" | "processing" | "adjust" | "ready";
-  result: { url: string; width: number; height: number; bytes: number; mime: string; minBytes: number; maxBytes: number } | null;
+  result: { url: string; blob: Blob; width: number; height: number; bytes: number; mime: string; minBytes: number; maxBytes: number } | null;
 };
 
 export function downloadName(kind: FileKind, width: number, height: number, mime: string) {

@@ -1,0 +1,4 @@
+[
+  { "id": "zip-day", "name": "ZIP Day Pass", "amountPaise": 500, "currency": "INR", "durationSeconds": 86400, "features": ["zip"] },
+  { "id": "print-day", "name": "Print + ZIP Day Pass", "amountPaise": 1000, "currency": "INR", "durationSeconds": 86400, "features": ["zip", "print"] }
+]

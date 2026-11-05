@@ -7,7 +7,7 @@ for (let attempt = 0; attempt < 30; attempt++) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 assert.ok(healthy, "Container health check did not become ready.");
-for (const route of ["/", "/trust", "/privacy", "/terms", "/contact", "/robots.txt", "/sitemap.xml", "/icon.svg"]) {
+for (const route of ["/", "/trust", "/privacy", "/terms", "/contact", "/pricing", "/donate", "/refunds", "/robots.txt", "/sitemap.xml", "/icon.svg"]) {
   const response = await request(route);
   assert.equal(response.status, 200, `${route} should return 200`);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");

@@ -6,6 +6,8 @@ Production target: **https://photoresizekaro.in**, repository **https://github.c
 
 The homepage now starts with the photo/signature workflow. Optional exam presets expand on demand; colour choices and bilingual help follow the editor. Search metadata, static help content, app structured data and a social preview are included. Follow [the search launch checklist](docs/seo-launch.md) for Search Console ownership, sitemap submission and monitoring. Search rankings are not guaranteed.
 
+Optional paid tools now include a **₹5 ZIP Day Pass**, a **₹10 Print + ZIP Day Pass**, and separate voluntary support starting at **₹5**. Each pass lasts 24 hours with no automatic renewal. Checkout requires an email and uses Razorpay-hosted links. A separate Node.js API verifies payments and records orders/events in PostgreSQL; images stay on the visitor's device. The seller/payment contact is MGRRNTECH, contact@photoresizekaro.in, +91 82759 28446. Read [the payment deployment guide](docs/payments-deployment.md) before enabling the backend. Live payments remain disabled until real merchant credentials and delivery/refund flows are validated.
+
 ## Run locally
 
 Use Node.js 22.18 or newer; the Docker builder and CI use Node.js 24.
@@ -79,9 +81,11 @@ Dimensions never shrink silently to satisfy a KB target. An oversized result can
 
 Centimetres convert at the selected DPI. JPEG export sets both JFIF density axes before evaluating byte limits; this does not add pixel detail. CTET's physical measurements are converted at an app-selected 300 DPI and rounded to whole pixels; the derived pixel values are not mislabelled as official pixel requirements. PNG/WebP use the browser's export behavior and a 96 DPI conversion in this interface. Transparency is flattened onto white for JPEG. Device/browser encoders may produce different byte sizes, so each final output is checked.
 
-The page must load before network disconnection. Worker assets are requested on export; if a worker cannot start offline, processing falls back to the already-loaded local Canvas path. This is not an installable offline PWA. There is no production launch, independent security audit, payment integration, or donation collection yet.
+The page must load before network disconnection. Worker assets are requested on export; if a worker cannot start offline, processing falls back to the already-loaded local Canvas path. This is not an installable offline PWA. Paid access checks need a connection; the free local workflow remains independent of the payment API. The free editor was deployed on 4 November 2026. The new payment integration has not collected live payments or undergone an independent security audit.
 
 ## Verification
+
+Payment release checks on 5 November 2026: **26 unit/security tests**, **15 integration tests using a real isolated PostgreSQL database and simulated gateway**, and **24 Chrome browser tests** passed. Both Docker images built successfully, and frontend/API smoke checks passed with checkout disabled. The browser tests inspect real ZIP image bytes and A4 PDF dimensions, required email, donation limits, checkout data boundaries and rechecked access expiry. Refund/duplicate/reordered-event and interrupted-checkout behavior is exercised against PostgreSQL. Production dependency audits reported zero known advisories for both packages. Real Razorpay test-mode and live settlement checks remain account-configuration steps; no live purchase was made by these tests.
 
 On 4 November 2026, the production static build, TypeScript check, **22 unit/preset tests** and **17 Chrome browser tests** passed. Browser tests ran against the actual restricted Docker runtime and cover real downloads, independent workflows, mobile/Hindi layout, offline export, preset/DPI bytes, pre-decode memory limits, worker/compatibility rotation, legitimate hydration and rejection of an unapproved inline script. Docker smoke checks cover routes, headers, caching, rejected POSTs, health and real 404 responses. The production dependency audit reported no known advisories at that time.
 

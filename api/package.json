@@ -1,0 +1,8 @@
+{
+  "name": "photoresizekaro-payments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": { "pg": "8.23.1" },
+  "engines": { "node": ">=24" }
+}

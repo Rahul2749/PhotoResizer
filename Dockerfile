@@ -6,8 +6,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY next.config.ts next-env.d.ts tsconfig.json postcss.config.mjs ./
 COPY src ./src
+COPY shared ./shared
 COPY public ./public
 COPY scripts ./scripts
+COPY api/security.mjs ./api/security.mjs
 COPY tests ./tests
 RUN npm test && npm run build
 
