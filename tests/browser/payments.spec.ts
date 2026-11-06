@@ -18,10 +18,21 @@ test("checkout requires email, sends only payment data and preserves its restore
  await expect(page.getByRole("link",{name:"Continue to Razorpay — ₹5"})).toHaveCSS("color","rgb(255, 255, 255)");
  await page.getByText("Your restore code & order details",{exact:true}).click();await expect(page.locator(".restore-code").first()).toHaveText(pending.restoreCode);
 });
-test("donations start at ₹5 and remain separate from feature purchases",async({page},testInfo)=>{
- await mockPayments(page);await page.setViewportSize({width:390,height:844});await page.goto("/donate");await page.getByLabel("Email for this payment").fill("supporter@example.test");await page.getByLabel("Amount in rupees").fill("4");let payload:unknown=null;page.on("request",(request)=>{if(request.url().endsWith("/checkout"))payload=JSON.parse(request.postData()!);});
- await page.getByRole("button",{name:"Donate ₹4",exact:true}).click();expect(payload).toBeNull();await page.getByRole("button",{name:"₹5",exact:true}).click();await page.getByRole("button",{name:"Donate ₹5",exact:true}).click();await expect(page.getByRole("heading",{name:"Opening Razorpay checkout…"})).toBeVisible();expect(payload).toEqual({productId:"donation",email:"supporter@example.test",amountPaise:500});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath("donate-phone.png"),fullPage:true});
+test("donation controls stay hidden even when the backend allows donations",async({page})=>{
+ await mockPayments(page);
+ const checkouts:string[]=[];
+ page.on("request",request=>{if(request.url().endsWith("/checkout"))checkouts.push(request.postData()||"");});
+ for(const path of ["/", "/pricing", "/purchases", "/donate"]){
+  await page.goto(path);
+  await expect(page.locator('a[href="/donate"]')).toHaveCount(0);
+  await expect(page.getByRole("button",{name:/Donate/})).toHaveCount(0);
+ }
+ await expect(page.getByRole("heading",{name:"Contributions are currently unavailable."})).toBeVisible();
+ await expect(page.getByLabel("Email for this payment")).toHaveCount(0);
+ await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content",/noindex/);
+ expect(checkouts).toHaveLength(0);
 });
+
 test("one tap on a paid plan automatically navigates to the verified gateway in the same tab",async({page})=>{
  await mockPayments(page);await page.route("https://rzp.io/**",route=>route.fulfill({contentType:"text/html",body:"<h1>Mock secure checkout</h1>"}));
  await page.setViewportSize({width:390,height:844});await page.goto("/pricing");await page.getByLabel("Email for this payment").fill("buyer@example.test");

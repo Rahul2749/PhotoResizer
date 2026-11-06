@@ -1,5 +1,13 @@
 import InformationPage from "../../components/information-page";
-import CommercePanel from "../../components/commerce-panel";
 import { pageMetadata } from "../../lib/seo";
-export const metadata=pageMetadata("/donate","Donate from ₹5 — Support PhotoResizeKaro","Voluntarily support hosting, preset maintenance and accessibility from ₹5. Support is optional, separate from paid passes, and does not affect free downloads.");
-export default function DonatePage(){return <InformationPage title="Help keep the free tool useful." intro="Support hosting, preset maintenance and accessibility with a voluntary contribution starting at ₹5. Free downloads remain available whether you contribute or not."><CommercePanel kind="donate"/><section><h2>Support without a public donor list</h2><p>We do not publish your name, email or contribution amount. Payments are recorded privately for reconciliation and support. Contributions are separate from paid passes and do not unlock features.</p></section></InformationPage>;}
+
+export const metadata = {
+  ...pageMetadata("/donate", "Contributions unavailable — PhotoResizeKaro", "Voluntary contributions are currently unavailable. Use the free editor or explore optional paid passes."),
+  robots: { index: false, follow: true },
+};
+
+export default function DonatePage() {
+  return <InformationPage title="Contributions are currently unavailable." intro="You can continue using the free photo and signature tools.">
+    <p><a href="/#editor">Open the free editor</a> or <a href="/pricing">view optional ₹5 / ₹10 passes</a>.</p>
+  </InformationPage>;
+}

@@ -11,7 +11,7 @@ const htmlPath = (pathname) => path.join("out", pathname === "/" ? "index.html" 
 assert.equal(new Set(urls.map((url) => url.href)).size, urls.length, "Duplicate sitemap entries.");
 for (const url of urls) {
   assert.equal(url.origin, origin);
-  assert.ok(!/admin|payment-status|purchases|\/api\//.test(url.pathname), "Private route in sitemap.");
+  assert.ok(!/donate|admin|payment-status|purchases|\/api\//.test(url.pathname), "Private route in sitemap.");
   const html = await readFile(htmlPath(url.pathname), "utf8");
   assert.equal((html.match(/<h1\b/g) || []).length, 1, `Expected one H1 on ${url.pathname}`);
   assert.ok(!/<meta[^>]+name="robots"[^>]+content="[^"]*noindex/.test(html), `Indexable route marked noindex: ${url.pathname}`);
@@ -25,9 +25,13 @@ for (const url of urls) {
   for (const match of html.matchAll(/<a\b[^>]*href="([^"]+)"/g)) {
     const target = new URL(match[1].replaceAll("&amp;", "&"), url);
     if (target.origin !== origin) continue;
+    assert.notEqual(target.pathname, "/donate", `Hidden contribution page linked from ${url.pathname}`);
     await stat(htmlPath(target.pathname));
   }
 }
+const hiddenContributions = await readFile(htmlPath("/donate"), "utf8");
+assert.match(hiddenContributions, /name="robots" content="noindex, follow"/);
+assert.ok(!hiddenContributions.includes('id="payment-email"'), "Hidden contribution page must not offer checkout.");
 const tools = ["resize-image-to-20kb", "resize-image-to-50kb", "resize-image-to-100kb", "resize-image-to-200kb", "signature-resizer", "resize-image-to-200x230", "passport-photo-resizer"];
 for (const slug of tools) {
   assert.ok(urls.some((url) => url.pathname === `/${slug}`), `Tool missing from sitemap: ${slug}`);

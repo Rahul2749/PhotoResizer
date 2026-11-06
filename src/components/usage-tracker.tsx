@@ -7,7 +7,7 @@ import { publicToolPaths } from "../lib/tool-index";
 export default function UsageTracker() {
   const pathname = usePathname(), previous = useRef("");
   useEffect(() => {
-    if (![...publicToolPaths, "/tools", "/about", "/guides/photo-upload-rejected", "/", "/pricing", "/donate", "/trust", "/privacy", "/terms", "/contact", "/refunds"].includes(pathname) || previous.current === pathname) return;
+    if (![...publicToolPaths, "/tools", "/about", "/guides/photo-upload-rejected", "/", "/pricing", "/trust", "/privacy", "/terms", "/contact", "/refunds"].includes(pathname) || previous.current === pathname) return;
     previous.current = pathname;
     trackUsage("page_view");
   }, [pathname]);
