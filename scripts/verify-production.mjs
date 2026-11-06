@@ -28,6 +28,16 @@ assert.match(adminHtml, /name="robots" content="noindex, nofollow"/);
 assert.ok(!(await readFile("out/sitemap.xml", "utf8")).includes("admin-photoresize-mgrrntech"), "Admin must not be in the sitemap.");
 assert.ok(!adminHtml.includes("ADMIN_PASSWORD="), "Admin credentials must remain server-only.");
 const home = await readFile("out/index.html", "utf8");
+assert.ok(home.includes('rel="icon" href="/favicon.png"'), "Missing raster search favicon.");
+for (const [file, size] of [["favicon.png", 192], ["apple-touch-icon.png", 180]]) {
+  const png = await readFile(path.join("out", file));
+  assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  assert.equal(png.readUInt32BE(16), size);
+  assert.equal(png.readUInt32BE(20), size);
+}
+const favicon = await readFile("out/favicon.ico");
+assert.equal(favicon.readUInt16LE(2), 1, "Invalid ICO type.");
+assert.equal(favicon.readUInt16LE(4), 2, "Expected two favicon sizes.");
 assert.equal((home.match(/<h1\b/g) || []).length, 1, "Homepage must have one main heading.");
 assert.ok(home.includes("How to resize a photo or signature online"), "Missing static help content.");
 const structured = home.match(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);

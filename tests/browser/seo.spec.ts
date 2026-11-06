@@ -19,6 +19,15 @@ test("search content, metadata and structured data exist before JavaScript runs"
     const page = await context.newPage();
     await page.goto("/");
     await expect(page).toHaveTitle("Photo & Signature Resizer — Free Online | PhotoResizeKaro");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "Quickly resize, crop and compress photos and signatures to 20KB, 50KB or 100KB. Free individual downloads, no watermark or login. Images stay on your device.");
+    await expect(page.locator('[data-nosnippet] .site-header')).toBeVisible();
+    await expect(page.locator('.tool-intro')).toContainText("Free image downloads, no login, no watermark.");
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.png");
+    for (const [url, type] of [["/favicon.png", "image/png"], ["/favicon.ico", "image/x-icon"], ["/apple-touch-icon.png", "image/png"]]) {
+      const asset = await context.request.get(url);
+      expect(asset.ok()).toBe(true);
+      expect(asset.headers()["content-type"]).toContain(type);
+    }
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(page.locator("h1")).toHaveText("Photo & signature resizer");
     await expect(page.getByRole("heading", { name: "How to resize a photo or signature online" })).toBeVisible();
