@@ -33,7 +33,7 @@
     "@types/pg": "8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "tailwindcss": "^4.1.0",
+    "tailwindcss": "^4.3.5",
     "typescript": "^5.9.0"
   },
   "engines": {
